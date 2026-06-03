@@ -76,8 +76,6 @@ Or upload a CSV with a `feedback` column — the tool reads it directly.
 
 ## About
 
-[PERSONALISE THIS — 2-3 sentences about you]
-
 Built by Sruthi S — Lead Data Analyst. I come from data background (SQL, Python, sklearn, model evaluation, end-to-end data product building, data visualizations etc) worked across domains like, pharma, learning management systems, learning & development, sales, marketing, pricing and supplychain, I built this to learn how to productionise AI applications and work with LLM APIs end-to-end while solving for a real problem at work. 
 
 [LinkedIn](https://linkedin.com/in/sruthi-s-sivakumar)
