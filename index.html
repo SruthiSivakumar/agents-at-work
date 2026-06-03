@@ -1,0 +1,1400 @@
+<!DOCTYPE html>
+<!--
+  ============================================================
+  MY Personal AI AGENT — Customer Feedback Scorer
+  Leveraging AI agent for a quick analysis for customer sentiment
+  ============================================================
+-->
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Customer Feedback Deepdive with AI</title>
+
+  <!--
+    GOOGLE FONTS — how to add a custom font
+    ─────────────────────────────────────────
+    1. Go to fonts.google.com
+    2. Pick any font you like → click "Get font" → "Get embed code"
+    3. Paste the <link> tag here
+    4. Use the font name in your CSS font-family
+
+    We're using:
+    · "Plus Jakarta Sans" — friendly, modern, great for dashboards
+  -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+
+    /*
+      ══════════════════════════════════════════════════════
+      COLOUR PALETTE
+      ══════════════════════════════════════════════════════
+
+      HOW TO FIND COLOURS:
+      · coolors.co — generates beautiful palettes
+      · palettemaker.com — pick a mood, get a palette
+      · copy any hex code (#xxxxxx) and paste it here
+
+      WHAT EACH VARIABLE DOES:
+    */
+    :root {
+      --bg:         #fdfaf7;   /* page background  — warm cream, not stark white  */
+      --surface:    #ffffff;   /* cards            — pure white lifts off the bg  */
+      --surface2:   #fef3e8;   /* tinted surface   — used for highlights          */
+      --border:     #f0e6d8;   /* lines/dividers   — soft warm grey               */
+      --text:       #1c1917;   /* main text        — near black, not harsh        */
+      --muted:      #78716c;   /* secondary text   — warm grey                    */
+      --accent:     #f97316;   /* orange           — energetic, marketing-forward */
+      --accent2:    #8b5cf6;   /* purple           — secondary accent             */
+      --green:      #16a34a;   /* positive         — clear green                  */
+      --red:        #dc2626;   /* negative         — clear red                    */
+      --yellow:     #d97706;   /* medium urgency   — amber                        */
+      --radius-sm:  8px;       /* small rounding                                  */
+      --radius-md:  14px;      /* medium rounding                                 */
+      --radius-lg:  20px;      /* large rounding — makes things feel friendly     */
+
+      --font: 'Plus Jakarta Sans', system-ui, sans-serif;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+
+      /*
+        BACKGROUND PATTERN — subtle dot grid
+        ─────────────────────────────────────────────────────
+        radial-gradient() creates circular dots.
+        The colour #e8ddd0 is a warm grey dot.
+        20px 20px = spacing between dots.
+      */
+      background-image: radial-gradient(circle, #e8ddd0 1px, transparent 1px);
+      background-size: 20px 20px;
+
+      color: var(--text);
+      font-family: var(--font);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      padding: 2.5rem 1rem;
+    }
+
+    .container { width: 100%; max-width: 720px; }
+
+    /* ── Header ──────────────────────────────────────────── */
+    .header {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 1.75rem 2rem;
+      margin-bottom: 1.25rem;
+
+      /*
+        BOX SHADOW — adds depth, makes card "float"
+        ────────────────────────────────────────────
+        Format: box-shadow: X Y blur spread colour
+        · X=0 means no left/right offset
+        · Y=4px means shadow goes downward
+        · blur=24px means it's soft
+        · the rgba colour — last number (0.06) is opacity
+        Try changing 0.06 to 0.15 for a stronger shadow.
+      */
+      box-shadow: 0 4px 24px rgba(249, 115, 22, 0.06);
+    }
+
+    .header-top {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 0.5rem;
+    }
+
+    /* Icon circle — the orange blob next to the title */
+    .icon {
+      width: 42px;
+      height: 42px;
+      background: var(--surface2);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.3rem;
+      flex-shrink: 0;
+    }
+
+    .header h1 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: -0.02em;   /* tighter tracking */
+    }
+
+    .header p {
+      font-size: 0.875rem;
+      color: var(--muted);
+      line-height: 1.6;
+      margin-left: calc(42px + 1rem);  /* aligns under title, not icon */
+    }
+
+    /* ── Input card ──────────────────────────────────────── */
+    .input-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 1.5rem;
+      margin-bottom: 1rem;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+    }
+
+    label {
+      display: block;
+      font-size: 0.8rem;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 0.6rem;
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 130px;
+      background: var(--bg);
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-md);
+      color: var(--text);
+      font-family: var(--font);
+      font-size: 0.9rem;
+      padding: 0.9rem 1rem;
+      resize: vertical;
+      line-height: 1.7;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    /*
+      :focus = styles that apply ONLY when element is clicked/selected
+      This creates the orange glow when the user clicks the textarea.
+    */
+    textarea:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.12);
+    }
+
+    .hint {
+      font-size: 0.78rem;
+      color: var(--muted);
+      margin: 0.6rem 0 1.25rem;
+      display: flex;
+      align-items: center;
+      gap: 0.3rem;
+    }
+
+    /* ── Button ──────────────────────────────────────────── */
+    /*
+      BUTTON STYLING
+      ────────────────────────────────────────────────
+      Try changing:
+      · background: linear-gradient(135deg, #f97316, #ef4444) for a gradient
+      · border-radius: 50px for a fully pill-shaped button
+      · Add a box-shadow for a "raised" feel
+    */
+    .btn {
+      width: 100%;
+      background: var(--accent);
+      color: white;
+      border: none;
+      border-radius: var(--radius-md);
+      padding: 0.85rem 1.5rem;
+      font-family: var(--font);
+      font-size: 0.95rem;
+      font-weight: 600;
+      letter-spacing: 0.01em;
+      cursor: pointer;
+      transition: all 0.2s;
+      box-shadow: 0 4px 12px rgba(249, 115, 22, 0.3);
+    }
+
+    .btn:hover {
+      background: #ea6c0a;          /* slightly darker on hover */
+      box-shadow: 0 6px 16px rgba(249, 115, 22, 0.4);
+      transform: translateY(-1px);  /* tiny lift effect */
+    }
+
+    .btn:active  { transform: translateY(0); }
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+
+    /* ── Results ─────────────────────────────────────────── */
+    .results { margin-top: 1.25rem; }
+
+    .section-label {
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 0.75rem;
+    }
+
+    /* Summary stats row */
+    .summary {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);  /* 4 equal columns */
+      gap: 0.75rem;
+      margin-bottom: 1.25rem;
+    }
+
+    .stat {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 1rem;
+      text-align: center;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    }
+
+    .stat-val   { font-size: 1.6rem; font-weight: 700; color: var(--accent); letter-spacing: -0.03em; }
+    .stat-label { font-size: 0.72rem; color: var(--muted); margin-top: 3px; font-weight: 500; }
+
+    /* .row-card removed — feedback now lives inside the drawer */
+    .row-card { display: none; }
+
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(8px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .row-text {
+      font-size: 0.88rem;
+      color: var(--muted);
+      line-height: 1.6;
+      margin-bottom: 0.75rem;
+      font-style: italic;  /* quote feel */
+    }
+
+    .row-text::before { content: '"'; color: var(--accent); font-size: 1.1rem; }
+    .row-text::after  { content: '"'; color: var(--accent); font-size: 1.1rem; }
+
+    .pill-row { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-bottom: 0.65rem; }
+
+    /*
+      PILLS — small coloured badges
+      ──────────────────────────────
+      Base .pill styles apply to all pills.
+      Modifier classes (pill-pos, pill-neg etc.) add the colour.
+      This is called BEM-lite — base + modifier pattern.
+    */
+    .pill {
+      font-size: 0.72rem;
+      font-weight: 600;
+      padding: 0.25rem 0.7rem;
+      border-radius: 50px;        /* fully rounded = pill shape */
+      letter-spacing: 0.03em;
+    }
+
+    /* Sentiment colours */
+    .pill-pos { background: #dcfce7; color: #15803d; }
+    .pill-neg { background: #fee2e2; color: #dc2626; }
+    .pill-neu { background: #f3f4f6; color: #6b7280; }
+
+    /* Urgency colours */
+    .pill-high { background: #fee2e2; color: #dc2626; }
+    .pill-med  { background: #fef9c3; color: #a16207; }
+    .pill-low  { background: #dcfce7; color: #15803d; }
+
+    /* Category — purple tint */
+    .pill-cat  { background: #ede9fe; color: #7c3aed; }
+
+    .action {
+      font-size: 0.83rem;
+      color: var(--text);
+      line-height: 1.5;
+      font-weight: 500;
+    }
+    .action-label { color: var(--muted); font-weight: 400; margin-right: 0.25rem; font-size: 0.78rem; }
+
+    /* ── Loading ──────────────────────────────────────────── */
+    .loading {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      color: var(--muted);
+      font-size: 0.88rem;
+      padding: 1.5rem;
+      background: var(--surface);
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border);
+    }
+
+    .spinner {
+      width: 16px;
+      height: 16px;
+      border: 2px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      flex-shrink: 0;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Error ───────────────────────────────────────────── */
+    .error {
+      background: #fff5f5;
+      border: 1px solid #fecaca;
+      color: var(--red);
+      border-radius: var(--radius-md);
+      padding: 1rem 1.25rem;
+      font-size: 0.85rem;
+      line-height: 1.8;
+    }
+
+    /* ── Responsive — stacks on mobile ──────────────────── */
+    /*
+      @media = "only apply these styles when screen width < 500px"
+      This makes the 4-column stat grid stack into 2 columns on mobile.
+    */
+    @media (max-width: 500px) {
+      .summary { grid-template-columns: repeat(2, 1fr); }
+      .header p { margin-left: 0; margin-top: 0.5rem; }
+    }
+
+
+    /* ── Tabs (Paste / CSV) ──────────────────────────────── */
+    .tab-row { display: flex; gap: 0.5rem; margin-bottom: 1rem; }
+    .tab {
+      flex: 1; padding: 0.55rem 1rem; border-radius: var(--radius-sm);
+      border: 1.5px solid var(--border); background: transparent;
+      color: var(--muted); font-family: var(--font); font-size: 0.85rem;
+      font-weight: 600; cursor: pointer; transition: all 0.15s;
+      box-shadow: none; transform: none; width: auto;
+    }
+    .tab.active { background: var(--accent); color: white; border-color: var(--accent); box-shadow: 0 2px 8px rgba(249,115,22,0.25); }
+    .tab:hover:not(.active) { border-color: var(--accent); color: var(--accent); transform: none; box-shadow: none; }
+    .drop-zone {
+      border: 2px dashed var(--border); border-radius: var(--radius-md);
+      padding: 2rem 1rem; text-align: center; cursor: pointer;
+      transition: all 0.2s; background: var(--bg); margin-bottom: 0.6rem;
+    }
+    .drop-zone:hover, .drop-zone.dragover { border-color: var(--accent); background: var(--surface2); }
+    .drop-zone .dz-icon  { font-size: 2rem; margin-bottom: 0.5rem; }
+    .drop-zone .dz-title { font-weight: 600; color: var(--text); font-size: 0.9rem; margin-bottom: 0.3rem; }
+    .drop-zone .dz-sub   { font-size: 0.8rem; color: var(--muted); line-height: 1.5; }
+    #csvFile { display: none; }
+    .csv-preview {
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: var(--radius-sm); padding: 0.65rem 1rem;
+      font-size: 0.82rem; color: var(--text); margin-bottom: 0.6rem;
+      display: none; align-items: center; justify-content: space-between;
+    }
+    .csv-preview.visible { display: flex; }
+    .csv-clear { background: none; border: none; color: var(--muted); cursor: pointer; font-size: 1rem; padding: 0; box-shadow: none; transform: none; width: auto; }
+    .csv-clear:hover { color: var(--red); transform: none; box-shadow: none; }
+    .panel { display: none; }
+    .panel.active { display: block; }
+
+
+    /* ── Clickable stat cards ────────────────────────────────
+       cursor:pointer = hand icon on hover
+       transition    = smooth colour shift
+       .active       = highlighted when filter is applied      */
+    .stat {
+      cursor: pointer;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      border: 1.5px solid var(--border);
+      position: relative;
+    }
+    .stat:hover        { border-color: var(--accent); box-shadow: 0 4px 12px rgba(249,115,22,0.15); }
+    .stat.active-filter { border-color: var(--accent); background: var(--surface2); box-shadow: 0 4px 12px rgba(249,115,22,0.2); }
+    .stat-hint { font-size: 0.62rem; color: var(--muted); margin-top: 2px; opacity: 0.7; }
+
+    /* ── Feedback drawer (slides open below summary cards) ───
+       max-height trick: animating height is janky in CSS,
+       max-height from 0 → large value gives a smooth slide.   */
+    .feedback-drawer {
+      /* Hidden when closed — zero height, no overflow visible */
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.35s ease;
+      margin-bottom: 0.5rem;
+    }
+    .feedback-drawer.open {
+      /* Open state: fixed height + scroll instead of unlimited expansion */
+      max-height: 420px;
+      overflow: hidden;   /* drawer wrapper clips; inner div scrolls */
+    }
+    .drawer-inner {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 1rem 1.25rem;
+      margin-bottom: 1rem;
+      /* Make the inner content scrollable, not the outer wrapper */
+      max-height: 420px;
+      display: flex;
+      flex-direction: column;
+    }
+    /* Only the rows list scrolls — title stays pinned at top */
+    #drawerRows {
+      overflow-y: auto;
+      flex: 1;
+      /* Subtle scrollbar styling */
+      scrollbar-width: thin;
+      scrollbar-color: var(--border) transparent;
+    }
+    #drawerRows::-webkit-scrollbar       { width: 4px; }
+    #drawerRows::-webkit-scrollbar-track { background: transparent; }
+    #drawerRows::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+    .drawer-title {
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 0.75rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .drawer-close {
+      cursor: pointer;
+      font-size: 0.85rem;
+      color: var(--muted);
+      background: none;
+      border: none;
+      font-family: var(--font);
+      padding: 0;
+      box-shadow: none;
+      width: auto;
+      transform: none;
+    }
+    .drawer-close:hover { color: var(--accent); box-shadow: none; transform: none; }
+    .drawer-row {
+      font-size: 0.83rem;
+      color: var(--text);
+      padding: 0.5rem 0;
+      border-bottom: 1px solid var(--border);
+      line-height: 1.5;
+      display: flex;
+      gap: 0.75rem;
+      align-items: flex-start;
+    }
+    .drawer-row:last-child { border-bottom: none; }
+    .drawer-row-num { color: var(--muted); font-size: 0.75rem; min-width: 1.2rem; margin-top: 1px; }
+
+    /* ── Top actions section ──────────────────────────────
+       Rendered below the row cards, separate card             */
+    .actions-section {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 1.25rem 1.5rem;
+      margin-top: 1.5rem;
+      box-shadow: 0 4px 24px rgba(249,115,22,0.06);
+    }
+    .actions-section h2 {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 0.25rem;
+    }
+    .actions-sub {
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin-bottom: 1rem;
+    }
+    .action-item {
+      display: flex;
+      gap: 0.85rem;
+      align-items: flex-start;
+      padding: 0.7rem 0;
+      border-bottom: 1px solid var(--border);
+      animation: slideUp 0.3s ease;
+    }
+    .action-item:last-child { border-bottom: none; }
+    .action-num {
+      background: var(--surface2);
+      color: var(--accent);
+      font-size: 0.75rem;
+      font-weight: 700;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+    .action-body { flex: 1; }
+    .action-title { font-size: 0.88rem; font-weight: 600; color: var(--text); margin-bottom: 0.2rem; }
+    .action-why   { font-size: 0.8rem;  color: var(--muted); line-height: 1.5; }
+    .urgency-dot  { display: inline-block; width: 7px; height: 7px; border-radius: 50%; margin-right: 0.3rem; vertical-align: middle; }
+    .actions-loading {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      color: var(--muted);
+      font-size: 0.85rem;
+      padding: 0.5rem 0;
+    }
+
+    /* ── CSV button — lives inside the drawer header now ────── */
+    .btn-csv {
+      font-size: 0.75rem;
+      padding: 0.3rem 0.75rem;
+      border-radius: var(--radius-sm);
+      background: var(--surface);
+      border: 1.5px solid var(--border);
+      color: var(--muted);
+      font-family: var(--font);
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+      box-shadow: none;
+      transform: none;
+      width: auto;
+    }
+    .btn-csv:hover { border-color: var(--accent); color: var(--accent); transform: none; box-shadow: none; }
+
+
+    /* ── API Key banner ─────────────────────────────────────*/
+    .key-banner {
+      background: var(--surface2);
+      border: 1.5px solid var(--accent);
+      border-radius: var(--radius-lg);
+      padding: 1rem 1.25rem;
+      margin-bottom: 1.25rem;
+      display: flex;
+      gap: 0.75rem;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .key-banner.hidden { display: none; }
+    .key-banner-label { font-size: 0.8rem; font-weight: 600; color: var(--text); white-space: nowrap; }
+    .key-banner-sub   { font-size: 0.72rem; color: var(--muted); margin-top: 1px; }
+    .key-input {
+      flex: 1;
+      min-width: 200px;
+      background: var(--surface);
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-sm);
+      color: var(--text);
+      font-family: var(--font);
+      font-size: 0.8rem;
+      padding: 0.5rem 0.75rem;
+    }
+    .key-input:focus { outline: none; border-color: var(--accent); }
+    .key-save-btn {
+      padding: 0.5rem 1rem;
+      font-size: 0.82rem;
+      font-weight: 600;
+      background: var(--accent);
+      color: white;
+      border: none;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      font-family: var(--font);
+      white-space: nowrap;
+      box-shadow: none;
+      width: auto;
+      transform: none;
+    }
+    .key-save-btn:hover { opacity: 0.85; transform: none; box-shadow: none; }
+    .key-set-bar {
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 0.55rem 1rem;
+      margin-bottom: 1.25rem;
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+    .key-set-bar.visible { display: flex; }
+    .key-change-btn {
+      font-size: 0.75rem;
+      background: none;
+      border: none;
+      color: var(--accent);
+      cursor: pointer;
+      padding: 0;
+      font-family: var(--font);
+      font-weight: 600;
+      box-shadow: none;
+      width: auto;
+      transform: none;
+    }
+    .key-change-btn:hover { opacity: 0.75; transform: none; box-shadow: none; }
+
+  </style>
+</head>
+
+<body>
+<div class="container">
+
+  <!-- ── HEADER ─────────────────────────────────────────── -->
+  <!-- API KEY BANNER — shown when no key saved, hides once saved -->
+  <div class="key-banner" id="keyBanner">
+    <div>
+      <div class="key-banner-label">🔑 OpenRouter API Key required</div>
+      <div class="key-banner-sub">Saved in your browser only — never in the code or on GitHub</div>
+    </div>
+    <input class="key-input" id="keyInput" type="password"
+           placeholder="sk-or-v1-..." autocomplete="off" />
+    <button class="key-save-btn" onclick="saveKey()">Save key</button>
+  </div>
+
+  <!-- Small bar shown once key is set -->
+  <div class="key-set-bar" id="keySetBar">
+    <span>🔑 API key saved in browser</span>
+    <button class="key-change-btn" onclick="changeKey()">change</button>
+  </div>
+
+  <div class="header">
+    <div class="header-top">
+      <div class="icon">📣</div>
+      <h1>Feedback Analyser</h1>
+    </div>
+
+    <p>
+      Paste customer feedback from survey, calls or comments — one per line.
+      AI scores each one: sentiment · category · urgency · recommended action.
+    </p>
+  </div>
+
+  <!-- ── INPUT ──────────────────────────────────────────── -->
+  <div class="input-card">
+
+    <!-- Tab switcher: Paste text vs Upload CSV -->
+    <div class="tab-row">
+      <button class="tab active" id="tabPaste" onclick="switchTab('paste')">✏️ Paste text</button>
+      <button class="tab"        id="tabCsv"   onclick="switchTab('csv')">📂 Upload CSV</button>
+    </div>
+
+    <!-- PANEL 1: Paste text -->
+    <div class="panel active" id="panelPaste">
+      <label for="feedbackInput">Paste feedback — one per line</label>
+      <textarea id="feedbackInput" placeholder="Delivery was 3 days late and packaging was crushed
+Love the new dashboard, it is so much faster now
+Price increased without any notice — very frustrating
+Support agent resolved my issue in under 2 minutes"></textarea>
+    <!-- <p class="hint">💡 Works with campaign feedback, brand audits, social comments, agency briefs</p> --> 
+    </div>
+
+    <!-- PANEL 2: CSV upload -->
+
+    <div class="panel" id="panelCsv">
+      <label>Upload a CSV file</label>
+
+      <!-- Drop zone — clicking this triggers the hidden file input below -->
+      <div class="drop-zone" id="dropZone" onclick="document.getElementById('csvFile').click()"
+           ondragover="handleDragOver(event)" ondrop="handleDrop(event)">
+        <div class="dz-icon">📄</div>
+        <div class="dz-title">Click to browse or drag & drop a CSV</div>
+        <div class="dz-sub">
+          Needs a column called <strong>feedback</strong>, <strong>comment</strong>, <strong>review</strong>, or <strong>text</strong><br>
+          Or just a single-column CSV — we'll read the whole thing
+        </div>
+      </div>
+
+      <!-- Hidden file picker — only accepts .csv files -->
+      <input type="file" id="csvFile" accept=".csv" onchange="handleFileSelect(event)">
+
+      <!-- Shows file name + row count after a file is loaded -->
+      <div class="csv-preview" id="csvPreview">
+        <span id="csvInfo">No file loaded</span>
+        <button class="csv-clear" onclick="clearCsv()" title="Remove file">✕</button>
+      </div>
+
+      <p class="hint">💡 Try a public dataset from Kaggle — search "customer reviews CSV"</p>
+    </div>
+
+    <button class="btn" id="analyseBtn" onclick="analyseAll()">
+      ✦ Analyse feedback
+    </button>
+  </div>
+
+  <!-- ── OUTPUT ────────────────────────────────────────── -->
+  <div class="results" id="output"></div>
+
+</div>
+
+
+<script>
+
+
+  // ── CSV & TAB LOGIC ──────────────────────────────────────
+
+
+  let csvLines = [];   // stores lines loaded from CSV
+
+  // Switch between Paste and CSV tabs
+  function switchTab(tab) {
+    document.getElementById('panelPaste').classList.toggle('active', tab === 'paste');
+    document.getElementById('panelCsv').classList.toggle('active',   tab === 'csv');
+    document.getElementById('tabPaste').classList.toggle('active',   tab === 'paste');
+    document.getElementById('tabCsv').classList.toggle('active',     tab === 'csv');
+    csvLines = [];
+    clearCsv();
+  }
+
+  // Called when user picks a file via the file dialog
+  function handleFileSelect(event) {
+    const file = event.target.files[0];
+    if (file) readCsvFile(file);
+  }
+
+  // Drag over — must preventDefault to allow drop
+  function handleDragOver(event) {
+    event.preventDefault();
+    document.getElementById('dropZone').classList.add('dragover');
+  }
+
+  // Drop — get the file from the drag event
+  function handleDrop(event) {
+    event.preventDefault();
+    document.getElementById('dropZone').classList.remove('dragover');
+    const file = event.dataTransfer.files[0];
+    if (file && file.name.endsWith('.csv')) readCsvFile(file);
+    else alert('Please drop a .csv file');
+  }
+
+  // Read the CSV file using FileReader API
+  function readCsvFile(file) {
+    const reader = new FileReader();
+
+    // This runs when the file is fully loaded
+    // Like the body of: with open(file) as f: content = f.read()
+    reader.onload = function(e) {
+      const text = e.target.result;
+      csvLines = parseCsv(text);
+
+      // Show preview
+      const preview = document.getElementById('csvPreview');
+      document.getElementById('csvInfo').textContent =
+        `📄 ${file.name} — ${csvLines.length} rows loaded`;
+      preview.classList.add('visible');
+    };
+
+    reader.readAsText(file);   // start reading — triggers onload when done
+  }
+
+  // Simple CSV parser — extracts the feedback column
+  //
+  // WHAT THIS DOES:
+  // 1. Split file into rows (by newline)
+  // 2. Check if first row looks like headers (no numbers, short words)
+  // 3. If headers exist: find which column is "feedback/comment/review/text"
+  // 4. Extract that column from every row
+  // 5. If no matching column: just use the first column
+  //
+  // Python equivalent:
+  //   import csv
+  //   rows = list(csv.reader(open('file.csv')))
+  //   col = next(i for i,h in enumerate(rows[0]) if 'feedback' in h.lower())
+  //   lines = [row[col] for row in rows[1:]]
+  //
+  function parseCsv(text) {
+    const rows = text.trim().split('\n').map(r => r.split(',').map(c => c.replace(/^"|"$/g, '').trim()));
+
+    if (rows.length === 0) return [];
+
+    const firstRow = rows[0];
+    const feedbackKeywords = ['feedback', 'comment', 'review', 'text', 'response', 'message'];
+
+    // Check if first row is a header row
+    const isHeader = firstRow.some(cell =>
+      feedbackKeywords.some(kw => cell.toLowerCase().includes(kw))
+    );
+
+    if (isHeader) {
+      // Find the column index that matches feedback keywords
+      const colIndex = firstRow.findIndex(cell =>
+        feedbackKeywords.some(kw => cell.toLowerCase().includes(kw))
+      );
+      const idx = colIndex >= 0 ? colIndex : 0;
+      return rows.slice(1).map(r => r[idx]).filter(Boolean).slice(0, 50);
+    } else {
+      // No header — use first column of every row
+      return rows.map(r => r[0]).filter(Boolean).slice(0, 50);
+    }
+  }
+
+  function clearCsv() {
+    csvLines = [];
+    document.getElementById('csvPreview').classList.remove('visible');
+    document.getElementById('csvFile').value = '';
+  }
+
+  // ── YOUR OPENROUTER KEY ──────────────────────────────────
+
+  // ── API KEY — stored in browser localStorage, not in code ──
+  function getKey() {
+    return localStorage.getItem('openrouter_key') || '';
+  }
+
+  function saveKey() {
+    const val = document.getElementById('keyInput').value.trim();
+    if (!val.startsWith('sk-or-')) {
+      alert('Key should start with sk-or- — check you copied it correctly.');
+      return;
+    }
+    localStorage.setItem('openrouter_key', val);
+    showKeyStatus(true);
+  }
+
+  function changeKey() {
+    localStorage.removeItem('openrouter_key');
+    showKeyStatus(false);
+  }
+
+  function showKeyStatus(isSet) {
+    document.getElementById('keyBanner').classList.toggle('hidden', isSet);
+    document.getElementById('keySetBar').classList.toggle('visible', isSet);
+  }
+
+  // On page load — check if key already saved, hide banner if so
+  window.addEventListener('DOMContentLoaded', () => {
+    if (getKey()) showKeyStatus(true);
+  });
+
+
+  // ══════════════════════════════════════════════════════════
+  // THE SYSTEM PROMPT — THIS IS THE MOST IMPORTANT THING TO
+  // UNDERSTAND AND PERSONALISE
+  // ══════════════════════════════════════════════════════════
+  //
+  // ANATOMY OF THE SYSTEM PROMPT:
+  //
+  //  PART 1 — ROLE (1 sentence)
+  //
+  //  PART 2 — CATEGORIES (your domain vocabulary)
+  //  → These are the buckets  data gets sorted into.
+
+  //
+  //  PART 3 — OUTPUT FORMAT (never change this part)
+  //  → "Return ONLY a JSON array"
+  //  → The field names (feedback, sentiment, category...) drive UI.
+  //
+  // ══════════════════════════════════════════════════════════
+
+  const SYSTEM_PROMPT = `
+You are a senior customer experience analyst with 15 years of experience
+across customer insights, frontline sales and customer service.
+
+Analyse each piece of feedback and classify it with strategic insight.
+
+Return ONLY a valid JSON array. Nothing else.
+No explanation. No markdown. No backtick code blocks.
+Start your response with [ and end with ].
+
+Each item must have exactly these fields:
+{
+  "feedback":  "<original text, trimmed to 90 characters>",
+  "sentiment": "Positive" or "Negative" or "Neutral",
+  "category":  one of: "Product" | "Service" | "Delivery" | "Price" | "Communication" | "UX" | "Other",
+  "urgency":   "High" or "Medium" or "Low",
+  "insight": "<implications from the feedback that serves as the reasoning for the next step",
+  "action":    "<specific next step, maximum 12 words>"
+}
+
+Urgency guide:
+  High   = complaint needing immediate response, churn risk
+  Medium = issue to address in next sprint or review cycle
+  Low    = positive feedback or minor note, no urgent action
+
+Think like a leader in your space — give action recommendations that are specific
+and strategic, not generic ("Improve product delivery with so and so feature" not "fix it").
+  `.trim();
+
+
+  // ── MAIN FUNCTION ────────────────────────────────────────
+  async function analyseAll() {
+
+    if (!getKey()) {
+      alert('Please save your OpenRouter API key first — see the banner at the top.');
+      return;
+    }
+
+    // Decide whether to use pasted text or CSV lines
+    const isCsvTab = document.getElementById('tabCsv').classList.contains('active');
+
+    let lines = [];
+
+    if (isCsvTab) {
+      // CSV mode — use the lines we parsed from the uploaded file
+      if (csvLines.length === 0) { alert("Please upload a CSV file first 📄"); return; }
+      lines = csvLines;
+    } else {
+      // Paste mode — read the textarea
+      const rawText = document.getElementById("feedbackInput").value.trim();
+      if (!rawText) { alert("Paste some feedback first ✦"); return; }
+      lines = rawText
+        .split("\n")
+        .map(l => l.trim())
+        .filter(l => l.length > 0)
+        .slice(0, 50);
+    }
+
+    const btn = document.getElementById("analyseBtn");
+    btn.disabled = true;
+    btn.textContent = "Analysing...";
+
+    const output = document.getElementById("output");
+
+    // Split into batches of 20 — free models handle this reliably
+    const BATCH_SIZE = 20;
+    const batches = [];
+    for (let i = 0; i < lines.length; i += BATCH_SIZE) {
+      batches.push(lines.slice(i, i + BATCH_SIZE));
+    }
+
+    output.innerHTML = `
+      <div class="loading">
+        <div class="spinner"></div>
+        Processing ${lines.length} rows in ${batches.length} batch${batches.length > 1 ? 'es' : ''}...
+      </div>
+    `;
+
+    try {
+      let allResults = [];
+
+      for (let b = 0; b < batches.length; b++) {
+        output.innerHTML = `
+          <div class="loading">
+            <div class="spinner"></div>
+            Batch ${b + 1} of ${batches.length} — rows ${b * BATCH_SIZE + 1} to ${Math.min((b + 1) * BATCH_SIZE, lines.length)}...
+          </div>
+        `;
+
+        const batchMsg  = batches[b].map((l, i) => `${b * BATCH_SIZE + i + 1}. ${l}`).join("\n");
+        const replyText = await callWithRetry(SYSTEM_PROMPT, batchMsg);
+        const cleaned   = replyText.replace(/```json|```/g, "").trim();
+        const jsonMatch = cleaned.match(/\[[\s\S]*\]/);
+        if (!jsonMatch) throw new Error(`Batch ${b + 1} returned no JSON. Try again.`);
+        const batchRows = JSON.parse(repairJson(jsonMatch[0]));
+        allResults      = allResults.concat(batchRows);
+
+        if (b < batches.length - 1) await wait(800);
+      }
+
+      const rows = allResults;
+      renderResults(rows, lines.length);
+
+    } catch (err) {
+      output.innerHTML = `
+        <div class="error">
+          ⚠ ${err.message}<br><br>
+          · Check your OpenRouter key is pasted at the top<br>
+          · Key starts with "sk-or-..."<br>
+          · Right-click → Inspect → Console for details
+        </div>
+      `;
+    } finally {
+      btn.disabled = false;
+      btn.textContent = "✦ Analyse feedback";
+    }
+  }
+
+
+  // ── RENDER RESULTS ───────────────────────────────────────
+  //
+  // LEARNING NOTE — HOW TO ADD A NEW FIELD:
+  // ─────────────────────────────────────────
+  // If you added "brand_voice_score" to the system prompt,
+  // you'd display it here like this:
+  //
+  //   <div class="action">
+  //     <span class="action-label">Brand voice:</span> ${row.brand_voice_score}/5
+  //   </div>
+  //
+  // The field name must match exactly what's in the system prompt.
+  //
+
+  // ── GLOBALS ──────────────────────────────────────────────
+  // We store rows globally so the CSV download and drawer
+  // can access them without re-fetching.
+  let allRows = [];
+  let activeFilter = null;  // tracks which stat card is selected
+
+
+  // ── RENDER RESULTS ───────────────────────────────────────
+
+  function renderResults(rows, totalSent) {
+    allRows = rows;   // save globally for CSV and drawer
+    activeFilter = null;
+
+    const pos  = rows.filter(r => r.sentiment === "Positive").length;
+    const neg  = rows.filter(r => r.sentiment === "Negative").length;
+    const high = rows.filter(r => r.urgency   === "High").length;
+    const neu  = rows.length - pos - neg;
+
+    // Summary cards — clickable, drawer slides open below
+   
+    const summaryHTML = `
+      <div style="display:flex;justify-content:flex-end;margin-bottom:0.75rem;">
+        <button class="btn-csv" onclick="downloadCsv()">⬇ Download all as CSV</button>
+      </div>
+      <p class="section-label">${totalSent} items analysed — click a card to view feedback</p>
+      <div class="summary">
+        <div class="stat" id="stat-pos" onclick="filterRows('positive')">
+          <div class="stat-val" style="color:var(--green)">${pos}</div>
+          <div class="stat-label">Positive</div>
+          <div class="stat-hint">click to view ↓</div>
+        </div>
+        <div class="stat" id="stat-neg" onclick="filterRows('negative')">
+          <div class="stat-val" style="color:var(--red)">${neg}</div>
+          <div class="stat-label">Negative</div>
+          <div class="stat-hint">click to view ↓</div>
+        </div>
+        <div class="stat" id="stat-neu" onclick="filterRows('neutral')">
+          <div class="stat-val" style="color:var(--muted)">${neu}</div>
+          <div class="stat-label">Neutral</div>
+          <div class="stat-hint">click to view ↓</div>
+        </div>
+        <div class="stat" id="stat-high" onclick="filterRows('high')">
+          <div class="stat-val" style="color:var(--yellow)">${high}</div>
+          <div class="stat-label">High urgency</div>
+          <div class="stat-hint">click to view ↓</div>
+        </div>
+      </div>
+
+      <!-- Drawer: hidden by default, slides open on card click -->
+      <div class="feedback-drawer" id="feedbackDrawer">
+        <div class="drawer-inner">
+          <div class="drawer-title">
+            <span id="drawerTitle">Feedback</span>
+            <button class="drawer-close" onclick="closeDrawer()">✕ close</button>
+          </div>
+          <div id="drawerRows"></div>
+        </div>
+      </div>
+    `;
+
+
+    document.getElementById("output").innerHTML = summaryHTML;
+
+    // Fire second AI call to get Top 10 consolidated actions
+    fetchTopActions(rows);
+  }
+
+
+  // ── FILTER DRAWER ────────────────────────────────────────
+  //
+  // Called when user clicks a summary card.
+  // Shows matching rows in a slide-down drawer.
+  //
+  // LEARNING NOTE — how the drawer animation works:
+  //   max-height: 0    → element exists but is invisible (height 0)
+  //   max-height: 1000px → animates to full height
+  //   CSS transition handles the smooth slide
+  //   Adding class "open" triggers the transition
+  //
+  function filterRows(filter) {
+    // Toggle off if same card clicked twice
+    if (activeFilter === filter) { closeDrawer(); return; }
+    activeFilter = filter;
+
+    // Map filter value → stat card ID suffix
+    const idMap = { positive: 'pos', negative: 'neg', neutral: 'neu', high: 'high' };
+    ['pos','neg','neu','high'].forEach(id => {
+      document.getElementById('stat-' + id).classList.remove('active-filter');
+    });
+    document.getElementById('stat-' + idMap[filter]).classList.add('active-filter');
+
+    // Filter rows by the selected dimension
+    let filtered = [];
+    let title = '';
+    if (filter === 'positive') { filtered = allRows.filter(r => r.sentiment === 'Positive'); title = '✅ Positive feedback'; }
+    if (filter === 'negative') { filtered = allRows.filter(r => r.sentiment === 'Negative'); title = '🔴 Negative feedback'; }
+    if (filter === 'neutral')  { filtered = allRows.filter(r => r.sentiment === 'Neutral');  title = '⚪ Neutral feedback'; }
+    if (filter === 'high')     { filtered = allRows.filter(r => r.urgency   === 'High');     title = '⚡ High urgency items'; }
+
+    // Build drawer rows — now shows full detail: pills + insight
+    document.getElementById('drawerTitle').textContent = title + ' (' + filtered.length + ')';
+    document.getElementById('drawerRows').innerHTML = filtered.length
+      ? filtered.map((r, i) => `
+          <div class="drawer-row">
+            <span class="drawer-row-num">${i + 1}</span>
+            <div style="flex:1;">
+              <div style="margin-bottom:0.4rem;font-size:0.85rem;color:var(--text);line-height:1.5;">${r.feedback}</div>
+              <div style="display:flex;flex-wrap:wrap;gap:0.35rem;margin-bottom:0.35rem;">
+                <span class="pill ${sentimentClass(r.sentiment)}">${r.sentiment}</span>
+                <span class="pill pill-cat">${r.category}</span>
+                <span class="pill ${urgencyClass(r.urgency)}">${r.urgency} urgency</span>
+              </div>
+              <div style="font-size:0.78rem;color:var(--muted);line-height:1.4;">
+                <span style="margin-right:0.25rem;">→ insight:</span>${r.insight || r.action || ''}
+              </div>
+            </div>
+          </div>`).join('')
+      : '<div style="color:var(--muted);font-size:0.85rem;padding:0.5rem 0">No items in this group.</div>';
+
+    // Open the drawer
+    document.getElementById('feedbackDrawer').classList.add('open');
+    // Smooth scroll to drawer
+    document.getElementById('feedbackDrawer').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+
+  function closeDrawer() {
+    activeFilter = null;
+    document.getElementById('feedbackDrawer').classList.remove('open');
+    ['pos','neg','neu','high'].forEach(id => {
+      document.getElementById('stat-' + id).classList.remove('active-filter');
+    });
+  }
+
+
+  // ── CSV DOWNLOAD ─────────────────────────────────────────
+  //
+  // Converts allRows to a CSV string and triggers a download.
+  //
+  // how browser file download works:
+  //   1. Build a string with CSV content
+  //   2. Wrap it in a Blob (like a file object in memory)
+  //   3. Create a temporary URL pointing to that Blob
+  //   4. Create a fake <a> link, set its href to that URL
+  //   5. Programmatically click the link → browser downloads
+  //   6. Clean up the temporary URL
+  //
+  function downloadCsv() {
+    if (!allRows.length) return;
+
+    // Build CSV — header row + data rows
+    // We exclude "action" as requested — just the classification fields
+    const header = ['feedback', 'sentiment', 'category', 'urgency', 'insight'];
+    const csvRows = [
+      header.join(','),   // first row = column names
+      ...allRows.map(r => header.map(col => {
+        const val = (r[col] || '').toString().replace(/"/g, '""');  // escape quotes
+        return `"${val}"`;   // wrap every value in quotes (handles commas in text)
+      }).join(','))
+    ];
+
+    const csvString = csvRows.join('\n');
+
+    // Create blob and download link
+    const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
+    const url  = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href     = url;
+    link.download = 'feedback_analysis.csv';
+    link.click();           // trigger download
+    URL.revokeObjectURL(url);  // clean up
+  }
+
+
+  // ── TOP 10 ACTIONS — SECOND AI CALL ─────────────────────
+  //
+  // This is a SECOND call to the AI, separate from row classification.
+  // It reads all classified rows and synthesises consolidated actions.
+  //   Call 1: classify each row individually → good for row-level data
+  //   Call 2: synthesise across all rows    → good for strategic summary
+  //
+  async function fetchTopActions(rows) {
+    // Append the actions section placeholder while loading
+    const actionsDiv = document.createElement('div');
+    actionsDiv.className = 'actions-section';
+    actionsDiv.id = 'actionsSection';
+    actionsDiv.innerHTML = `
+      <h2>Top 10 Recommended Actions</h2>
+      <p class="actions-sub">Consolidated from all feedback — prioritised by impact</p>
+      <div class="actions-loading">
+        <div class="spinner"></div>
+        Synthesising strategic actions...
+      </div>
+    `;
+    document.getElementById('output').appendChild(actionsDiv);
+
+    const ACTION_PROMPT = `
+You are a senior customer experience strategist.
+Analyse the classified feedback below and return the top 10 most impactful actions the business should take.
+
+Rules:
+- Return ONLY a JSON array. No explanation, no markdown, no backticks.
+- Start with [ and end with ]
+- Return between 5 and 10 items — quality over quantity
+- Every string value must use double quotes
+- No trailing commas
+
+Each object in the array must have these four fields:
+1. "rank" — a number from 1 to 10
+2. "action" — the recommended action in plain English, under 15 words
+3. "why" — one sentence explaining why this matters based on the feedback
+4. "urgency" — exactly one of: High, Medium, Low
+
+Example of one valid item:
+{"rank": 1, "action": "Resolve delivery delays with logistics team", "why": "Multiple customers flagged late deliveries as a churn risk.", "urgency": "High"}
+    `.trim();
+
+    const summaryForAI = rows.map((r, i) =>
+      `${i+1}. [${r.sentiment}][${r.category}][${r.urgency}] ${r.feedback} — Insight: ${r.insight || r.action}`
+    ).join('\n');
+
+    try {
+      const actionsText = await callWithRetry(ACTION_PROMPT, "Classified feedback:\n" + summaryForAI);
+      const cleanedA   = actionsText.replace(/```json|```/g, '').trim();
+      const jsonMatch2 = cleanedA.match(/\[[\s\S]*\]/);
+      if (!jsonMatch2) throw new Error("Model returned no JSON for actions.");
+      const actions = JSON.parse(repairJson(jsonMatch2[0]));
+
+      const urgencyColour = u =>
+        u === 'High' ? 'var(--red)' : u === 'Medium' ? 'var(--yellow)' : 'var(--green)';
+
+      // Sort by rank in case model returned them out of order
+      const sorted = actions.sort((a, b) => (a.rank || 0) - (b.rank || 0));
+
+      actionsDiv.innerHTML = `
+        <h2>Top ${sorted.length} Recommended Actions</h2>
+        <p class="actions-sub">Consolidated from all ${rows.length} feedback items — prioritised by impact</p>
+        ${sorted.map((a, i) => `
+          <div class="action-item">
+            <div class="action-num">${a.rank || i + 1}</div>
+            <div class="action-body">
+              <div class="action-title">
+                <span class="urgency-dot" style="background:${urgencyColour(a.urgency || 'Medium')}"></span>
+                ${a.action || 'No action text'}
+              </div>
+              <div class="action-why">${a.why || ''}</div>
+            </div>
+          </div>
+        `).join('')}
+      `;
+
+    } catch (err) {
+      actionsDiv.innerHTML = `
+        <h2>Top 10 Recommended Actions</h2>
+        <div class="error" style="margin-top:0.75rem">Could not load actions: ${err.message}</div>
+      `;
+    }
+  }
+
+
+  // ── HELPERS ──────────────────────────────────────────────
+  // ── API CALL WITH RETRY ──────────────────────────────────
+  //
+  // Free models on OpenRouter sometimes fail with "provider error"
+  // or rate limits. This function:
+  //   1. Tries the primary model (Llama 3.3 70B)
+  //   2. If it fails, waits 1.5s and tries a fallback model
+  //   3. If that fails too, throws the error to the catch block
+  //
+  // This is called a "retry with fallback" pattern
+  //
+  const MODELS = [
+    "meta-llama/llama-3.3-70b-instruct:free",   // primary — strong, good JSON
+    "qwen/qwen3-8b:free",                         // fallback 1
+    "openrouter/free",                            // fallback 2 — whatever's available
+  ];
+
+  async function callWithRetry(systemPrompt, userMessage) {
+    let lastError;
+
+    for (let i = 0; i < MODELS.length; i++) {
+      const model = MODELS[i];
+      try {
+        const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            "Content-Type":  "application/json",
+            "Authorization": `Bearer ${getKey()}`
+          },
+          body: JSON.stringify({
+            model,
+            messages: [
+              { role: "system", content: systemPrompt },
+              { role: "user",   content: userMessage  }
+            ]
+          })
+        });
+
+        const data = await response.json();
+
+        // Provider error or rate limit — try next model
+        if (data.error) {
+          console.warn(`Model ${model} failed:`, data.error.message);
+          lastError = new Error(data.error.message);
+          await wait(1500);   // pause 1.5s before next attempt
+          continue;
+        }
+
+        return data.choices[0].message.content;   // success — return text
+
+      } catch (err) {
+        console.warn(`Model ${model} threw:`, err.message);
+        lastError = err;
+        await wait(1500);
+      }
+    }
+
+    throw lastError || new Error("All models failed. Please try again in a moment.");
+  }
+
+  // Small helper — pause for ms milliseconds
+  function wait(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
+
+    // ── JSON REPAIR ───────────────────────────────────────────
+  //
+  // Free models sometimes return slightly broken JSON.
+  // Common problems:
+  //   · Single quotes instead of double  →  'key': 'val'
+  //   · Trailing commas before } or ]   →  {"a":1,}
+  //   · Unquoted property names         →  {key: "val"}
+  //
+  // We fix all three before passing to JSON.parse.
+  //
+  function repairJson(str) {
+    let s = str;
+
+    // 1. Remove trailing commas before } or ]
+    //    e.g.  {"a":1,}  →  {"a":1}
+    s = s.replace(/,\s*([\]}])/g, '$1');
+
+    // 2. Quote unquoted keys
+    //    e.g.  {key: "val"}  →  {"key": "val"}
+    s = s.replace(/([{,]\s*)([a-zA-Z_][a-zA-Z0-9_]*)\s*:/g, '$1"$2":');
+
+    // 3. Replace single-quoted VALUES only (not apostrophes inside words)
+    //    e.g.  "key": 'value'  →  "key": "value"
+    //    We do this carefully to avoid breaking words like "don't"
+    s = s.replace(/:\s*'([^']*?)'/g, ': "$1"');
+
+    // 4. Remove any control characters that break JSON parsing
+    //    e.g. newlines or tabs embedded inside string values
+    s = s.replace(/[\u0000-\u001F]+(?=[^"]*"[^"]*(?:"[^"]*"[^"]*)*$)/g, ' ');
+
+    // 5. Escape unescaped newlines inside string values
+    //    Models sometimes put a literal newline inside a JSON string
+    s = s.replace(/"([^"]*)"/g, (match, inner) =>
+      '"' + inner.replace(/\n/g, '\\n').replace(/\r/g, '') + '"'
+    );
+
+    return s;
+  }
+
+    function sentimentClass(s) {
+    if (s === "Positive") return "pill-pos";
+    if (s === "Negative") return "pill-neg";
+    return "pill-neu";
+  }
+
+  function urgencyClass(u) {
+    if (u === "High")   return "pill-high";
+    if (u === "Medium") return "pill-med";
+    return "pill-low";
+  }
+
+</script>
+</body>
+</html>
