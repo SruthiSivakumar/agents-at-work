@@ -25,10 +25,6 @@ Paste any feedback — from customers, clients, campaign reviews, brand audits, 
 
 Also accepts CSV uploads directly — useful for analysing bulk exports from survey tools, CRM systems, or social listening platforms.
 
-## Live demo
-
-`yourname.github.io/brand-pulse`
-
 ## Built with
 
 - HTML + CSS + JavaScript — no frameworks, no build step
